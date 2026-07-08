@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Search, Sparkles, XCircle, Moon, Sun } from "lucide-react";
-import { products as initialProducts } from "@/data/products";
 
 export default function Home() {
   const [query, setQuery] = useState("");
   const [currency, setCurrency] = useState("USD");
-  const [displayedProducts, setDisplayedProducts] = useState(initialProducts);
+  const [displayedProducts, setDisplayedProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -56,7 +55,7 @@ export default function Home() {
 
   const handleReset = () => {
     setQuery("");
-    setDisplayedProducts(initialProducts);
+    setDisplayedProducts([]);
     setIsAiFiltered(false);
     setError("");
   };
@@ -126,7 +125,7 @@ export default function Home() {
             {displayedProducts.length > 0 ? (
               displayedProducts.map((product) => (
                 <div key={product.id} className="product-card">
-                  <img src={product.image} alt={product.name} style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '16px', marginBottom: '1rem' }} />
+                  <img src={product.image || `https://tse1.mm.bing.net/th?q=${encodeURIComponent(product.name + ' product photography')}&w=500&h=500&c=7`} alt={product.name} style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '16px', marginBottom: '1rem', backgroundColor: '#fff' }} />
                   <div className="product-category">{product.category}</div>
                   <h2 className="product-title">{product.name}</h2>
                   <p className="product-desc">{product.description}</p>
@@ -146,7 +145,7 @@ export default function Home() {
               ))
             ) : (
               <div style={{ gridColumn: "1 / -1", textAlign: "center", color: "var(--text-muted)", fontSize: "1.2rem" }}>
-                No products found matching your criteria. Try adjusting your request.
+                {isAiFiltered ? "No products found matching your criteria. Try adjusting your request." : "Ask the AI for any real-world product, and it will search and generate the results for you!"}
               </div>
             )}
           </div>
@@ -160,7 +159,7 @@ export default function Home() {
               </button>
               
               <div className="modal-image-placeholder" style={{ background: 'none', padding: 0 }}>
-                <img src={selectedProduct.image} alt={selectedProduct.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px' }} />
+                <img src={selectedProduct.image || `https://tse1.mm.bing.net/th?q=${encodeURIComponent(selectedProduct.name + ' product photography')}&w=800&h=500&c=7`} alt={selectedProduct.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px', backgroundColor: '#fff' }} />
               </div>
 
               <div className="modal-header">

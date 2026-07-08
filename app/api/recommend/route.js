@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-import { products } from '@/data/products';
 
 export async function POST(req) {
   try {
@@ -20,14 +19,25 @@ export async function POST(req) {
     const ai = new GoogleGenAI({ apiKey: keyToUse });
 
     const systemPrompt = `
-      You are an AI product recommendation assistant.
-      Here is the list of available products:
-      ${JSON.stringify(products, null, 2)}
-
-      Given a user's request, find all the products that match their criteria.
-      The product prices listed above are in USD. If the user specifies a budget in Indian Rupees (INR, ₹, or "rupees"), assume an exchange rate of 1 USD = 83 INR to evaluate the prices.
-      Respond ONLY with a JSON array of matching product IDs. If no products match, respond with an empty JSON array [].
-      Do not include markdown blocks, just the raw JSON array.
+      You are an expert AI shopping assistant. Your job is to recommend REAL-WORLD products (like actual smartphones, laptops, headphones, etc. that exist in reality) based on the user's request.
+      
+      RULES:
+      1. Generate 3 to 6 real products that accurately match the user's criteria.
+      2. If the user specifies a budget in Indian Rupees (INR, ₹, or "rupees") or any other currency, accurately estimate the conversion and ensure the products fit that budget (assume 1 USD = 83 INR).
+      3. For each product, you must provide the estimated price in USD (as a plain number, no symbols).
+      4. Respond ONLY with a valid JSON array of objects. Do not include markdown formatting like \`\`\`json.
+      
+      JSON FORMAT EXACTLY LIKE THIS:
+      [
+        {
+          "id": "generate-a-unique-random-id-string",
+          "name": "Exact Real Product Name (e.g. Samsung Galaxy S23 Ultra)",
+          "category": "Broad Category (e.g. Smartphone)",
+          "price": 1199,
+          "description": "A compelling 2-3 sentence description of this real product and why it fits the user's request.",
+          "imageSearchTerm": "A 2-word phrase to search for this product's image (e.g. galaxy s23)"
+        }
+      ]
     `;
 
     const response = await ai.models.generateContent({
@@ -36,19 +46,16 @@ export async function POST(req) {
     });
 
     const aiContent = response.text.trim();
-    let recommendedIds = [];
+    let recommendedProducts = [];
     
     try {
-      // Sometimes the model might wrap in markdown even when told not to, so strip it just in case
+      // Strip markdown if the AI accidentally adds it
       const cleanedContent = aiContent.replace(/```json/g, '').replace(/```/g, '').trim();
-      recommendedIds = JSON.parse(cleanedContent);
+      recommendedProducts = JSON.parse(cleanedContent);
     } catch (e) {
       console.error("Failed to parse AI response:", aiContent);
-      return NextResponse.json({ error: 'Invalid response from AI' }, { status: 500 });
+      return NextResponse.json({ error: 'The AI generated an invalid response. Please try again.' }, { status: 500 });
     }
-
-    // Filter products
-    const recommendedProducts = products.filter(p => recommendedIds.includes(p.id));
 
     return NextResponse.json({ recommendations: recommendedProducts });
   } catch (error) {

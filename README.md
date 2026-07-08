@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Product Recommendation System
 
-## Getting Started
+A modern, AI-powered web application that understands natural language queries and recommends products based on user needs. Built with Next.js and powered by the Gemini AI API.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Natural Language Search:** Tell the AI what you need in plain English (e.g., "I need a budget phone under 15,000 rupees"), and it will find the best match.
+- **Dual Currency Support:** Instantly toggle the UI between USD ($) and INR (₹). The AI backend is also configured to automatically handle currency conversions during the search process.
+- **Beautiful UI & Animations:** Features a sleek dark/light mode, an animated cyber-grid background with floating neural orbs, and glassmorphism styling.
+- **Seamless Modal View:** View product details in an elegant, animated modal overlay.
+- **Secure API Handling:** API logic is handled server-side via Next.js API Routes, keeping API keys completely hidden from the frontend client.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 💻 Tech Stack
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- **Framework:** Next.js (App Router)
+- **Styling:** Vanilla CSS (CSS Variables, Flexbox/Grid, Keyframe Animations)
+- **AI Integration:** Google Gemini SDK (`@google/genai`)
+- **Icons:** Lucide React
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ⚙️ How to Run Locally
 
-## Learn More
+1. **Clone the repository**
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+3. **Set up Environment Variables:**
+   Create a `.env.local` file in the root directory and add your Gemini API Key:
+   ```env
+   GEMINI_API_KEY=your_api_key_here
+   ```
+4. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+5. **Open your browser:** Visit `http://localhost:3000`
 
-To learn more about Next.js, take a look at the following resources:
+## 🧠 How it Works
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. The user inputs a query like "I want to buy a gaming keyboard."
+2. The frontend sends this query to the local Next.js API route (`/api/recommend`).
+3. The server securely attaches the `GEMINI_API_KEY` and constructs a prompt combining the user's query with our mock product catalog.
+4. The Gemini AI model analyzes the request, performs any necessary currency conversions, and returns a JSON array of matching product IDs.
+5. The API filters the catalog based on the AI's response and sends the recommended products back to the frontend to be displayed.
