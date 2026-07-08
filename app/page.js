@@ -5,7 +5,7 @@ import { Search, Sparkles, XCircle, Moon, Sun } from "lucide-react";
 
 export default function Home() {
   const [query, setQuery] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState("INR");
   const [displayedProducts, setDisplayedProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(false);
