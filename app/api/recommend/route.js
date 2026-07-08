@@ -41,7 +41,7 @@ export async function POST(req) {
     `;
 
     const response = await ai.models.generateContent({
-        model: 'gemini-pro',
+        model: 'gemini-3.5-flash',
         contents: `${systemPrompt}\n\nUser request: ${query}`,
     });
 
