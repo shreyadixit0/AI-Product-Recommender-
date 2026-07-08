@@ -60,6 +60,12 @@ export async function POST(req) {
     return NextResponse.json({ recommendations: recommendedProducts });
   } catch (error) {
     console.error("Error in recommendation API:", error);
+    
+    // Check if the error is a rate limit / quota error from Gemini
+    if (error.message && (error.message.includes('429') || error.message.includes('quota') || error.message.includes('exhausted'))) {
+      return NextResponse.json({ error: 'The AI is currently receiving too many requests (Rate Limit). Please wait about 45 seconds and try again!' }, { status: 429 });
+    }
+    
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
 }
