@@ -1,66 +1,188 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { useState, useEffect } from "react";
+import { Search, Sparkles, XCircle, Moon, Sun } from "lucide-react";
+import { products as initialProducts } from "@/data/products";
 
 export default function Home() {
+  const [query, setQuery] = useState("");
+  const [currency, setCurrency] = useState("USD");
+  const [displayedProducts, setDisplayedProducts] = useState(initialProducts);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [isAiFiltered, setIsAiFiltered] = useState(false);
+  const [theme, setTheme] = useState("light");
+
+  // Sync theme to body tag
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === "light" ? "dark" : "light");
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!query) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/recommend", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong");
+      }
+
+      setDisplayedProducts(data.recommendations);
+      setIsAiFiltered(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setQuery("");
+    setDisplayedProducts(initialProducts);
+    setIsAiFiltered(false);
+    setError("");
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
+    <>
+      {/* Animated Tech Background */}
+      <div className="tech-background"></div>
+      <div className="orb orb-1"></div>
+      <div className="orb orb-2"></div>
+      <div className="orb orb-3"></div>
+
+      <main className="container">
+        <header className="header">
+          <button className="theme-toggle" onClick={toggleTheme} title="Toggle Dark/Light Mode">
+            {theme === "light" ? <Moon size={24} /> : <Sun size={24} />}
+          </button>
+          
+          <h1>AI Recommender</h1>
+          <p>Find exactly what you need with the power of AI.</p>
+          
+          <div style={{ marginTop: '1.5rem' }}>
+            <button 
+              className="btn" 
+              style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', background: currency === 'USD' ? 'var(--primary)' : 'transparent', color: currency === 'USD' ? '#fff' : 'var(--text-main)', border: '1px solid var(--primary)', boxShadow: 'none' }}
+              onClick={() => setCurrency('USD')}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
+              USD ($)
+            </button>
+            <button 
+              className="btn" 
+              style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', marginLeft: '0.5rem', background: currency === 'INR' ? 'var(--primary)' : 'transparent', color: currency === 'INR' ? '#fff' : 'var(--text-main)', border: '1px solid var(--primary)', boxShadow: 'none' }}
+              onClick={() => setCurrency('INR')}
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+              INR (₹)
+            </button>
+          </div>
+        </header>
+
+        {error && <div className="error-message">{error}</div>}
+
+        <form className="search-section" onSubmit={handleSearch}>
+          <input
+            type="text"
+            className="input-field"
+            placeholder="E.g., I want a phone under 15000..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            disabled={loading}
+          />
+          <button type="submit" className="btn" disabled={loading || !query}>
+            <Sparkles size={18} />
+            {loading ? "Analyzing..." : "Recommend"}
+          </button>
+          {isAiFiltered && (
+            <button type="button" className="btn reset-btn" onClick={handleReset} disabled={loading}>
+              <XCircle size={18} />
+              Reset
+            </button>
+          )}
+        </form>
+
+        {loading ? (
+          <div className="loading-indicator">Processing Request through Neural Network...</div>
+        ) : (
+          <div className="products-grid">
+            {displayedProducts.length > 0 ? (
+              displayedProducts.map((product) => (
+                <div key={product.id} className="product-card">
+                  <img src={product.image} alt={product.name} style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '16px', marginBottom: '1rem' }} />
+                  <div className="product-category">{product.category}</div>
+                  <h2 className="product-title">{product.name}</h2>
+                  <p className="product-desc">{product.description}</p>
+                  <div className="product-footer">
+                    <div className="product-price">
+                      {currency === 'INR' ? `₹${Math.round(product.price * 83).toLocaleString('en-IN')}` : `$${product.price}`}
+                    </div>
+                    <button 
+                      className="btn btn-view" 
+                      style={{ padding: "0.5rem 1.5rem", fontSize: "0.95rem" }}
+                      onClick={() => setSelectedProduct(product)}
+                    >
+                      View
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={{ gridColumn: "1 / -1", textAlign: "center", color: "var(--text-muted)", fontSize: "1.2rem" }}>
+                No products found matching your criteria. Try adjusting your request.
+              </div>
+            )}
+          </div>
+        )}
+
+        {selectedProduct && (
+          <div className="modal-overlay" onClick={() => setSelectedProduct(null)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button className="modal-close" onClick={() => setSelectedProduct(null)}>
+                <XCircle size={28} />
+              </button>
+              
+              <div className="modal-image-placeholder" style={{ background: 'none', padding: 0 }}>
+                <img src={selectedProduct.image} alt={selectedProduct.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px' }} />
+              </div>
+
+              <div className="modal-header">
+                <div className="modal-category">{selectedProduct.category}</div>
+                <h2 className="modal-title">{selectedProduct.name}</h2>
+              </div>
+              
+              <p className="modal-desc">{selectedProduct.description}</p>
+              
+              <div className="modal-footer">
+                <div className="modal-price">
+                  {currency === 'INR' ? `₹${Math.round(selectedProduct.price * 83).toLocaleString('en-IN')}` : `$${selectedProduct.price}`}
+                </div>
+                <button className="btn btn-buy">
+                  <Sparkles size={18} />
+                  Checkout
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
-    </div>
+    </>
   );
 }
